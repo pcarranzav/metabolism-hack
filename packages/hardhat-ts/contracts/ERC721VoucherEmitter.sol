@@ -4,12 +4,13 @@ pragma solidity >=0.8.0 <0.9.0;
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Royalty.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 import "@zoralabs/v3/dist/contracts/modules/Asks/Core/ETH/AsksCoreEth.sol";
 
 import "./IERC721Voucher.sol";
 import "./ERC721Voucher.sol";
 
-contract ERC721VoucherEmitter is ERC721Enumerable, ERC721Royalty {
+contract ERC721VoucherEmitter is Ownable, ERC721Enumerable, ERC721Royalty {
   // Voucher NFT contract, created by this contract
   IERC721Voucher public voucher;
   // ERC721TransferHelper from Zora, that will be the only contract allowed to execute transfers that produce vouchers
@@ -20,6 +21,8 @@ contract ERC721VoucherEmitter is ERC721Enumerable, ERC721Royalty {
   uint256 minVoucherPrice;
 
   event VoucherCreated(address owner, uint256 tokenId, uint256 voucherId);
+  event MinVoucherPriceUpdated(uint256 minVoucherPrice);
+  event ZoraAddressesUpdated(address asksCore, address transferHelper);
 
   constructor(
     string memory name_,
@@ -29,11 +32,18 @@ contract ERC721VoucherEmitter is ERC721Enumerable, ERC721Royalty {
     address asksCore_,
     address transferHelper_,
     uint256 minVoucherPrice_
-  ) ERC721(name_, symbol_) {
-    voucher = new ERC721Voucher(address(this), voucherName_, voucherSymbol_);
-    asksCore = AsksCoreEth(asksCore_);
-    transferHelper = transferHelper_;
-    minVoucherPrice = minVoucherPrice_;
+  ) Ownable() ERC721(name_, symbol_) {
+    voucher = new ERC721Voucher(msg.sender, address(this), voucherName_, voucherSymbol_);
+    _setZoraAddresses(asksCore_, transferHelper_);
+    _setMinVoucherPrice(minVoucherPrice_);
+  }
+
+  function setMinVoucherPrice(uint256 minVoucherPrice_) external onlyOwner {
+    _setMinVoucherPrice(minVoucherPrice_);
+  }
+
+  function setZoraAddresses(address asksCore_, address transferHelper_) external onlyOwner {
+    _setZoraAddresses(asksCore_, transferHelper_);
   }
 
   // Should be overridden by individual NFT contracts
@@ -53,7 +63,8 @@ contract ERC721VoucherEmitter is ERC721Enumerable, ERC721Royalty {
    * transferred to `to`.
    * - When `from` is zero, `tokenId` will be minted for `to`.
    * - When `to` is zero, ``from``'s `tokenId` will be burned.
-   * - `from` and `to` are never both zero.
+   * - `from` cannot be the zero address.
+   * - `to` cannot be the zero address.
    *
    * To learn more about hooks, head to xref:ROOT:extending-contracts.adoc#using-hooks[Using Hooks].
    */
@@ -62,7 +73,6 @@ contract ERC721VoucherEmitter is ERC721Enumerable, ERC721Royalty {
     address to,
     uint256 tokenId
   ) internal virtual override(ERC721, ERC721Enumerable) {
-    // ?
     super._beforeTokenTransfer(from, to, tokenId);
   }
 
@@ -100,5 +110,16 @@ contract ERC721VoucherEmitter is ERC721Enumerable, ERC721Royalty {
   function _mintVoucher(address to, uint256 tokenId) internal {
     uint256 voucherId = voucher.mint(to, tokenId);
     emit VoucherCreated(to, tokenId, voucherId);
+  }
+
+  function _setMinVoucherPrice(uint256 minVoucherPrice_) internal {
+    minVoucherPrice = minVoucherPrice_;
+    emit MinVoucherPriceUpdated(minVoucherPrice);
+  }
+
+  function _setZoraAddresses(address asksCore_, address transferHelper_) internal {
+    asksCore = AsksCoreEth(asksCore_);
+    transferHelper = transferHelper_;
+    emit ZoraAddressesUpdated(asksCore_, transferHelper_);
   }
 }

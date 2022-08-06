@@ -14,4 +14,11 @@ interface IERC721Voucher is IERC721Enumerable {
    * @return tokenId for the new voucher token
    */
   function mint(address to, uint256 parentTokenId) external returns (uint256);
+
+  /**
+   * @notice claim a voucher
+   * @param tokenId voucher token to claim
+   * @param extraData additional (potentially encrypted) data related to the voucher claim, e.g. an encrypted key and an encrypted address
+   */
+  function claim(uint256 tokenId, bytes calldata extraData) external;
 }
