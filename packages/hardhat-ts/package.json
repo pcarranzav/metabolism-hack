@@ -49,6 +49,7 @@
     "@typechain/ethers-v5": "^10.1.0",
     "@typechain/hardhat": "^6.1.2",
     "@zoralabs/nft-drop-contracts": "^1.0.1",
+    "@zoralabs/v3": "^1.0.10",
     "bip39": "^3.0.4",
     "chalk": "^4.1.2",
     "erc721a-upgradeable": "^4.2.1",

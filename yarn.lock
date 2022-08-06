@@ -1520,6 +1520,27 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@manifoldxyz/libraries-solidity@npm:^1.0.2":
+  version: 1.0.2
+  resolution: "@manifoldxyz/libraries-solidity@npm:1.0.2"
+  dependencies:
+    "@openzeppelin/contracts": ^4.2.0
+    "@openzeppelin/contracts-upgradeable": ^4.2.0
+  checksum: 6dca6f3581102b8085cc67625c910e9289505b9bbccc0f6a7bdc59ccc86997a4128bbf4a542111c5bd337d37b76c0060f41585d61ab36dcf454bb1de077181ce
+  languageName: node
+  linkType: hard
+
+"@manifoldxyz/royalty-registry-solidity@npm:^1.0.9":
+  version: 1.0.9
+  resolution: "@manifoldxyz/royalty-registry-solidity@npm:1.0.9"
+  dependencies:
+    "@manifoldxyz/libraries-solidity": ^1.0.2
+    "@openzeppelin/contracts": ^4.3.2
+    "@openzeppelin/contracts-upgradeable": ^4.3.2
+  checksum: be6c2eef154ec7dce2210d3d21f2bb4da95e0437be8f405f35b4c11b73cac8ca8a1402a8ec0eed5b143dd16b353d09f0c718d8e18de390e4d8714d75e41bd236
+  languageName: node
+  linkType: hard
+
 "@maticnetwork/maticjs@npm:^3.4.0-beta.0":
   version: 3.4.0-beta.0
   resolution: "@maticnetwork/maticjs@npm:3.4.0-beta.0"
@@ -1794,7 +1815,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@openzeppelin/contracts@npm:^4.7.2":
+"@openzeppelin/contracts-upgradeable@npm:^4.2.0, @openzeppelin/contracts-upgradeable@npm:^4.3.2":
+  version: 4.7.2
+  resolution: "@openzeppelin/contracts-upgradeable@npm:4.7.2"
+  checksum: da4b27323516ef4d2de1262c87532cbd403b4a8a36b96bf40159cb2bfbc8f386b918415de4cd204fba36626a7236e07295ce38312e714f4cea274467d88f949b
+  languageName: node
+  linkType: hard
+
+"@openzeppelin/contracts@npm:^4.2.0, @openzeppelin/contracts@npm:^4.3.2, @openzeppelin/contracts@npm:^4.5.0, @openzeppelin/contracts@npm:^4.7.2":
   version: 4.7.2
   resolution: "@openzeppelin/contracts@npm:4.7.2"
   checksum: f02f2b44cdec46bafe1b608b495b6e2dc161ae4a3f308ba9921787cb77b8b877232839047b12f03b4d0fee9ca9208887fd5b9e7bdbf9a8c4f01021b1f1181233
@@ -1949,6 +1977,13 @@ __metadata:
   dependencies:
     body-scroll-lock: ^3.1.5
   checksum: 8c0e9caf4aa234e88bba8532e9bcb2404226ea140ee1c78f9eee8fad0758691965937036a9083c6d3b86cd260de21308b3be4e88fb880bf26ac6ec3130ebde2b
+  languageName: node
+  linkType: hard
+
+"@rari-capital/solmate@npm:^6.2.0":
+  version: 6.4.0
+  resolution: "@rari-capital/solmate@npm:6.4.0"
+  checksum: 27c656f72ce9b51ab6ec25165ae5426f74af934352eca062eb8419c4cf7fc4c6debf45487afd6bee7860e38b7c33d3a6d353a0d4c176c961c9c8125d30cf52a4
   languageName: node
   linkType: hard
 
@@ -2122,6 +2157,7 @@ __metadata:
     "@typescript-eslint/eslint-plugin": ^5.30.7
     "@typescript-eslint/parser": ^5.30.7
     "@zoralabs/nft-drop-contracts": ^1.0.1
+    "@zoralabs/v3": ^1.0.10
     bip39: ^3.0.4
     chai: ^4.3.6
     chalk: ^4.1.2
@@ -3810,6 +3846,17 @@ __metadata:
     typechain: 8.0.0
     typescript: 4.6.3
   checksum: b48887b188d1f1f1bc0689eae8ab20a92306f64cc72c458d88baff430c874ac9486a852194d516c9b1d01857e502c9c74f07ef9bba852b259e09308a21b3ebc3
+  languageName: node
+  linkType: hard
+
+"@zoralabs/v3@npm:^1.0.10":
+  version: 1.0.10
+  resolution: "@zoralabs/v3@npm:1.0.10"
+  dependencies:
+    "@manifoldxyz/royalty-registry-solidity": ^1.0.9
+    "@openzeppelin/contracts": ^4.5.0
+    "@rari-capital/solmate": ^6.2.0
+  checksum: 2f055176e03266d0ebf9a289b218b8aa0a2c0386c73977861acaca058a959bf83b5600aedabdbf9efb5d8f33ff7f9b6522819ba2cd063b336d885998c308d839
   languageName: node
   linkType: hard
 
