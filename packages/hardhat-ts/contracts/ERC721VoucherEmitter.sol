@@ -19,27 +19,38 @@ contract ERC721VoucherEmitter is Ownable, ERC721Enumerable, ERC721Royalty {
   AsksCoreEth public asksCore;
   // Minimum price for a resale to generate a new voucher
   uint256 minVoucherPrice;
+  // Deadline for voucher emission, after this timestamp transfers won't emit vouchers
+  uint256 voucherDeadline;
 
   event VoucherCreated(address owner, uint256 tokenId, uint256 voucherId);
   event MinVoucherPriceUpdated(uint256 minVoucherPrice);
+  event VoucherDeadlineUpdated(uint256 voucherDeadline);
   event ZoraAddressesUpdated(address asksCore, address transferHelper);
 
   constructor(
+    address owner_,
     string memory name_,
     string memory symbol_,
     string memory voucherName_,
     string memory voucherSymbol_,
     address asksCore_,
     address transferHelper_,
-    uint256 minVoucherPrice_
-  ) Ownable() ERC721(name_, symbol_) {
-    voucher = new ERC721Voucher(msg.sender, address(this), voucherName_, voucherSymbol_);
+    uint256 minVoucherPrice_,
+    uint256 voucherDeadline_
+  ) ERC721(name_, symbol_) {
+    voucher = new ERC721Voucher(owner_, address(this), voucherName_, voucherSymbol_);
     _setZoraAddresses(asksCore_, transferHelper_);
     _setMinVoucherPrice(minVoucherPrice_);
+    _transferOwnership(owner_);
+    _setVoucherDeadline(voucherDeadline_);
   }
 
   function setMinVoucherPrice(uint256 minVoucherPrice_) external onlyOwner {
     _setMinVoucherPrice(minVoucherPrice_);
+  }
+
+  function setVoucherDeadline(uint256 voucherDeadline_) external onlyOwner {
+    _setVoucherDeadline(voucherDeadline_);
   }
 
   function setZoraAddresses(address asksCore_, address transferHelper_) external onlyOwner {
@@ -93,13 +104,15 @@ contract ERC721VoucherEmitter is Ownable, ERC721Enumerable, ERC721Royalty {
     uint256 tokenId
   ) internal virtual override(ERC721) {
     super._afterTokenTransfer(from, to, tokenId);
-    if (msg.sender == transferHelper) {
-      (address seller, uint256 price) = asksCore.askForNFT(address(this), tokenId);
-      if (seller == from && price >= minVoucherPrice) {
+    if (block.timestamp <= voucherDeadline) {
+      if (msg.sender == transferHelper) {
+        (address seller, uint256 price) = asksCore.askForNFT(address(this), tokenId);
+        if (seller == from && price >= minVoucherPrice) {
+          _mintVoucher(to, tokenId);
+        }
+      } else if (from == address(0)) {
         _mintVoucher(to, tokenId);
       }
-    } else if (from == address(0)) {
-      _mintVoucher(to, tokenId);
     }
   }
 
@@ -115,6 +128,11 @@ contract ERC721VoucherEmitter is Ownable, ERC721Enumerable, ERC721Royalty {
   function _setMinVoucherPrice(uint256 minVoucherPrice_) internal {
     minVoucherPrice = minVoucherPrice_;
     emit MinVoucherPriceUpdated(minVoucherPrice);
+  }
+
+  function _setVoucherDeadline(uint256 voucherDeadline_) internal {
+    voucherDeadline = voucherDeadline_;
+    emit VoucherDeadlineUpdated(voucherDeadline_);
   }
 
   function _setZoraAddresses(address asksCore_, address transferHelper_) internal {

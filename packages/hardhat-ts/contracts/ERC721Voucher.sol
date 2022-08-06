@@ -23,7 +23,7 @@ contract ERC721Voucher is Ownable, ERC721Enumerable, IERC721Voucher {
     address voucherEmitter_,
     string memory name_,
     string memory symbol_
-  ) Ownable() ERC721(name_, symbol_) {
+  ) ERC721(name_, symbol_) {
     voucherEmitter = voucherEmitter_;
     _transferOwnership(owner_);
   }
