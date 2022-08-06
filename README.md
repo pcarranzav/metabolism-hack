@@ -1,3 +1,7 @@
+# bigua and pcarranzav Metabolism hack (name TBD)
+
+Based on scaffold-eth-typescript. WIP. Original README follows:
+
 # 🏗 Scaffold-Eth Typescript
 
 ## Typescript
