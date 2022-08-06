@@ -15,9 +15,6 @@
     "build": "yarn build:vite",
     "start:vite": "yarn workspace @scaffold-eth/vite-app start",
     "build:vite": "yarn workspace @scaffold-eth/vite-app build",
-    "@🔖🔖🔖🔖🔖 nextjs 🔖🔖🔖🔖🔖 ": "echo 📖 react nextjs-app commands",
-    "start:nextjs": "yarn workspace @scaffold-eth/nextjs-app dev",
-    "build:nextjs": "yarn workspace @scaffold-eth/nextjs-app build",
     "@🔖🔖🔖🔖🔖 hardhat 🔖🔖🔖🔖🔖 ": "echo 📖 hardhat commands",
     "contracts:build": "yarn workspace @scaffold-eth/hardhat compile && yarn workspace @scaffold-eth/common contracts:hardhat && yarn workspace @scaffold-eth/common contracts:external",
     "contracts:rebuild": "yarn workspace @scaffold-eth/hardhat clean && yarn contracts:build",
@@ -30,7 +27,6 @@
     "@🔖🔖🔖🔖🔖 workspaces 🔖🔖🔖🔖🔖 ": "echo 📖 workspace commands",
     "w:hardhat": "yarn workspace @scaffold-eth/hardhat",
     "w:vite": "yarn workspace @scaffold-eth/vite-app",
-    "w:nextjs": "yarn workspace @scaffold-eth/nextjs-app",
     "w:subgraph": "yarn workspace @scaffold-eth/subgraph",
     "@🔖🔖🔖🔖🔖 ethereum helpers 🔖🔖🔖🔖🔖": "echo 📖 ethereum helper commands",
     "generate": "yarn workspace @scaffold-eth/hardhat generate",
@@ -44,7 +40,7 @@
     "syncpack:fix": "yarn syncpack fix-mismatches",
     "prepare": "husky install",
     "postinstall": "husky install",
-    "lint": "yarn workspace @scaffold-eth/vite-app lint --fix && yarn workspace @scaffold-eth/common lint --fix && yarn workspace @scaffold-eth/hardhat lint --fix && yarn workspace @scaffold-eth/nextjs-app lint --fix",
+    "lint": "yarn workspace @scaffold-eth/vite-app lint --fix && yarn workspace @scaffold-eth/common lint --fix && yarn workspace @scaffold-eth/hardhat lint --fix",
     "@🔖🔖🔖🔖🔖 dev linking with yalc 🔖🔖🔖🔖🔖": "echo 📖 dev tools",
     "dev:link:components": "yarn workspace @scaffold-eth/vite-app dev:link:components && yarn workspace @scaffold-eth/common dev:link:components",
     "dev:link:hooks": "yarn workspace @scaffold-eth/vite-app dev:link:hooks && yarn workspace @scaffold-eth/common dev:link:hooks",
@@ -55,7 +51,6 @@
       "packages/common",
       "packages/hardhat-ts",
       "packages/vite-app-ts",
-      "packages/next-app-ts",
       "packages/advanced/subgraph",
       "packages/advanced/services/*",
       "packages/*"
@@ -77,10 +72,6 @@
     "packages/vite-app-ts/src/**/*.{ts,tsx}": [
       "yarn workspace @scaffold-eth/vite-app lint --fix",
       "yarn workspace @scaffold-eth/vite-app format"
-    ],
-    "packages/nextjs-app-ts/src/**/*.{ts,tsx}": [
-      "yarn workspace @scaffold-eth/nextjs-app lint --fix",
-      "yarn workspace @scaffold-eth/nextjs-app format"
     ],
     "packages/common/src/**/*.{ts,tsx}": [
       "yarn workspace @scaffold-eth/common lint --fix",
