@@ -5,12 +5,15 @@ import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Royalty.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@zoralabs/v3/dist/contracts/modules/Asks/Core/ETH/AsksCoreEth.sol";
 
 import "./IERC721Voucher.sol";
 import "./ERC721Voucher.sol";
 
 contract ERC721VoucherEmitter is Ownable, ERC721Enumerable, ERC721Royalty {
+  using SafeMath for uint256;
+
   // Voucher NFT contract, created by this contract
   IERC721Voucher public voucher;
   // ERC721TransferHelper from Zora, that will be the only contract allowed to execute transfers that produce vouchers
@@ -18,9 +21,15 @@ contract ERC721VoucherEmitter is Ownable, ERC721Enumerable, ERC721Royalty {
   // AsksCoreEth contract from zora, that will be queried to validate if a transfer meets the minimum price requirement to produce a voucher
   AsksCoreEth public asksCore;
   // Minimum price for a resale to generate a new voucher
-  uint256 minVoucherPrice;
+  uint256 public minVoucherPrice;
   // Deadline for voucher emission, after this timestamp transfers won't emit vouchers
-  uint256 voucherDeadline;
+  uint256 public voucherDeadline;
+  // Max number of vouchers emitted for each token
+  uint256 public maxVouchersPerToken;
+  // Number of vouchers created for each token
+  mapping(uint256 => uint256) public nVouchers;
+  // Max number of vouchers emitted in total
+  uint256 public maxVouchers;
 
   event VoucherCreated(address owner, uint256 tokenId, uint256 voucherId);
   event MinVoucherPriceUpdated(uint256 minVoucherPrice);
@@ -36,9 +45,10 @@ contract ERC721VoucherEmitter is Ownable, ERC721Enumerable, ERC721Royalty {
     address asksCore_,
     address transferHelper_,
     uint256 minVoucherPrice_,
-    uint256 voucherDeadline_
+    uint256 voucherDeadline_,
+    uint256 claimDeadline_
   ) ERC721(name_, symbol_) {
-    voucher = new ERC721Voucher(owner_, address(this), voucherName_, voucherSymbol_);
+    voucher = new ERC721Voucher(owner_, address(this), voucherName_, voucherSymbol_, claimDeadline_);
     _setZoraAddresses(asksCore_, transferHelper_);
     _setMinVoucherPrice(minVoucherPrice_);
     _transferOwnership(owner_);
@@ -58,7 +68,9 @@ contract ERC721VoucherEmitter is Ownable, ERC721Enumerable, ERC721Royalty {
   }
 
   // Should be overridden by individual NFT contracts
-  function tokenURI(uint256 tokenId) public view virtual override(ERC721) returns (string memory) {}
+  function tokenURI(uint256 tokenId) public view virtual override(ERC721) returns (string memory) {
+    return super.tokenURI(tokenId);
+  }
 
   function supportsInterface(bytes4 interfaceId) public view virtual override(ERC721Enumerable, ERC721Royalty) returns (bool) {
     return ERC721Enumerable.supportsInterface(interfaceId) || ERC721Royalty.supportsInterface(interfaceId);
@@ -105,7 +117,7 @@ contract ERC721VoucherEmitter is Ownable, ERC721Enumerable, ERC721Royalty {
   ) internal virtual override(ERC721) {
     super._afterTokenTransfer(from, to, tokenId);
     if (block.timestamp <= voucherDeadline) {
-      if (msg.sender == transferHelper) {
+      if (msg.sender == transferHelper && nVouchers[tokenId] < maxVouchersPerToken && voucher.nextTokenId() < maxVouchers) {
         (address seller, uint256 price) = asksCore.askForNFT(address(this), tokenId);
         if (seller == from && price >= minVoucherPrice) {
           _mintVoucher(to, tokenId);
@@ -122,6 +134,7 @@ contract ERC721VoucherEmitter is Ownable, ERC721Enumerable, ERC721Royalty {
 
   function _mintVoucher(address to, uint256 tokenId) internal {
     uint256 voucherId = voucher.mint(to, tokenId);
+    nVouchers[tokenId] = nVouchers[tokenId].add(1);
     emit VoucherCreated(to, tokenId, voucherId);
   }
 

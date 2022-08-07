@@ -21,4 +21,18 @@ interface IERC721Voucher is IERC721Enumerable {
    * @param extraData additional (potentially encrypted) data related to the voucher claim, e.g. an encrypted key and an encrypted address
    */
   function claim(uint256 tokenId, bytes calldata extraData) external;
+
+  /**
+   * @notice report that a voucher claim has been fulfilled
+   * @dev can only be called by the owner of the voucher contract
+   * @param tokenId voucher token that was fulfilled
+   * @param extraData additional (potentially encrypted) data related to the voucher fulfillment, e.g. a tracking number or additional contact information
+   */
+  function reportFulfilled(uint256 tokenId, bytes calldata extraData) external;
+
+  /**
+   * @notice returns the next tokenId, that is equivalent to the number of vouchers minted
+   *
+   */
+  function nextTokenId() external view returns (uint256);
 }

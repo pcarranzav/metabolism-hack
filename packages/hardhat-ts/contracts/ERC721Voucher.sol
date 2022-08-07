@@ -11,21 +11,31 @@ import "./IERC721Voucher.sol";
 contract ERC721Voucher is Ownable, ERC721Enumerable, IERC721Voucher {
   using SafeMath for uint256;
 
+  // Address of the ERC721VoucherEmitter that is this contract's parent
   address public voucherEmitter;
-  uint256 public nextTokenId;
+  // tokenId for the next minted token
+  uint256 public override nextTokenId;
+  // tokenIds from the voucherEmitter to which each tokenId from this contract is linked
   mapping(uint256 => uint256) public parentTokenIds;
+  // True for tokenIds that have been claimed by their owner
   mapping(uint256 => bool) public claimed;
+  // Deadline to claim vouchers
+  uint256 claimDeadline;
+  //
 
   event VoucherClaimed(address voucherEmitter, uint256 parentTokenId, address owner, uint256 tokenId, bytes extraData);
+  event VoucherFulfilled(address voucherEmitter, uint256 parentTokenId, address contractOwner, address owner, uint256 tokenId, bytes extraData);
 
   constructor(
     address owner_,
     address voucherEmitter_,
     string memory name_,
-    string memory symbol_
+    string memory symbol_,
+    uint256 claimDeadline_
   ) ERC721(name_, symbol_) {
     voucherEmitter = voucherEmitter_;
     _transferOwnership(owner_);
+    claimDeadline = claimDeadline_;
   }
 
   /**
@@ -61,5 +71,17 @@ contract ERC721Voucher is Ownable, ERC721Enumerable, IERC721Voucher {
   // TODO generate metadata that references the parent token
   function tokenURI(uint256 tokenId) public view virtual override(ERC721) returns (string memory) {
     return super.tokenURI(tokenId);
+  }
+
+  /**
+   * @notice report that a voucher claim has been fulfilled
+   * @dev can only be called by the owner of the voucher contract.
+   * It can be called multiple times in case the sender needs to add additional information.
+   * @param tokenId voucher token that was fulfilled
+   * @param extraData additional (potentially encrypted) data related to the voucher fulfillment, e.g. a tracking number or additional contact information
+   */
+  function reportFulfilled(uint256 tokenId, bytes calldata extraData) external onlyOwner {
+    require(claimed[tokenId], "NOT_CLAIMED");
+    emit VoucherFulfilled(voucherEmitter, parentTokenIds[tokenId], msg.sender, ownerOf(tokenId), tokenId, extraData);
   }
 }
