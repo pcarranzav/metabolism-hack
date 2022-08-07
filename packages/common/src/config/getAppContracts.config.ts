@@ -26,23 +26,19 @@ export const getAppContractsConfig = () => {
       // --------------------------------------------------
       // 🙋🏽‍♂️ Add your hadrdhat contracts here
       // --------------------------------------------------
-      YourContract: createConnectorForHardhatContract(
-        'YourContract',
-        hardhatContracts.YourContract__factory,
-        hardhatDeployedContractsJson
-      ),
-
-      YourNFT: createConnectorForHardhatContract(
-        'YourNFT',
-        hardhatContracts.YourNFT__factory,
+      GenerativeObjectCollection: createConnectorForHardhatContract(
+        'GenerativeObjectCollection',
+        hardhatContracts.GenerativeObjectCollection__factory,
         hardhatDeployedContractsJson
       ),
 
       // --------------------------------------------------
       // 🙋🏽‍♂️ Add your external contracts here, make sure to define the address in `externalContractsConfig.ts`Í
       // --------------------------------------------------
-      DAI: createConnectorForExternalContract('DAI', externalContracts.DAI__factory, externalContractsAddressMap),
+      //AsksCoreEth: createConnectorForExternalContract('AsksCoreEth', externalContracts.AsksCoreEth__factory, externalContractsAddressMap),
 
+      // eslint-ignore-next-line @typescript-eslint/no-unsafe-argument
+      DAI: createConnectorForExternalContract('DAI', externalContracts.DAI__factory, externalContractsAddressMap),
       // --------------------------------------------------
       // 🙋🏽‍♂️ Add your external abi here (unverified contracts)`
       // --------------------------------------------------
