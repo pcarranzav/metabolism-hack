@@ -15,4 +15,8 @@ export default defineConfig({
     discriminateTypes: true,
     alwaysGenerateOverloads: false,
   },
+  rpc: {
+    polygon: 'https://polygon-rpc.com/',
+    polygonMumbai: 'https://rpc-mumbai.maticvigil.com/'
+  }
 });

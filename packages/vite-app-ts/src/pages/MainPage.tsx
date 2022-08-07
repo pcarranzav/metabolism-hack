@@ -83,20 +83,20 @@ export const MainPage: FC = () => {
   // -----------------------------
 
   // init contracts
-  const yourContract = useAppContracts('YourContract', ethersAppContext.chainId);
-  const yourNFT = useAppContracts('YourNFT', ethersAppContext.chainId);
+  const collection = useAppContracts('GenerativeObjectCollection', ethersAppContext.chainId);
+  //const asksCore = useAppContracts('AsksCoreEth', ethersAppContext.chainId);
   const mainnetDai = useAppContracts('DAI', NETWORKS.mainnet.chainId);
 
-  // keep track of a variable from the contract in the local React state:
-  const [purpose, update] = useContractReader(
-    yourContract,
-    yourContract?.purpose,
-    [],
-    yourContract?.filters.SetPurpose()
-  );
+  // // keep track of a variable from the contract in the local React state:
+  // const [purpose, update] = useContractReader(
+  //   yourContract,
+  //   yourContract?.purpose,
+  //   [],
+  //   yourContract?.filters.SetPurpose()
+  // );
 
   // 📟 Listen for broadcast events
-  const [setPurposeEvents] = useEventListener(yourContract, 'SetPurpose', 0);
+  const [transferEvents] = useEventListener(collection, 'Transfer', 0);
 
   // -----------------------------
   // .... 🎇 End of examples
@@ -121,38 +121,38 @@ export const MainPage: FC = () => {
   // This is the list of tabs and their contents
   const pageList: TContractPageList = {
     mainPage: {
-      name: 'YourContract',
+      name: 'GenerativeObjectCollection',
       content: (
         <GenericContract
-          contractName="YourContract"
-          contract={yourContract}
+          contractName="GenerativeObjectCollection"
+          contract={collection}
           mainnetAdaptor={scaffoldAppProviders.mainnetAdaptor}
           blockExplorer={scaffoldAppProviders.targetNetwork.blockExplorer}
         />
       ),
     },
     pages: [
-      {
-        name: 'YourNFT',
-        content: (
-          <GenericContract
-            contractName="YourNFT"
-            contract={yourNFT}
-            mainnetAdaptor={scaffoldAppProviders.mainnetAdaptor}
-            blockExplorer={scaffoldAppProviders.targetNetwork.blockExplorer}></GenericContract>
-        ),
-      },
-      {
-        name: 'Mainnet-Dai',
-        content: (
-          <GenericContract
-            contractName="Dai"
-            contract={mainnetDai}
-            mainnetAdaptor={scaffoldAppProviders.mainnetAdaptor}
-            blockExplorer={scaffoldAppProviders.targetNetwork.blockExplorer}
-          />
-        ),
-      },
+      // {
+      //   name: 'YourNFT',
+      //   content: (
+      //     <GenericContract
+      //       contractName="YourNFT"
+      //       contract={yourNFT}
+      //       mainnetAdaptor={scaffoldAppProviders.mainnetAdaptor}
+      //       blockExplorer={scaffoldAppProviders.targetNetwork.blockExplorer}></GenericContract>
+      //   ),
+      // },
+      // {
+      //   name: 'AsksCoreEth',
+      //   content: (
+      //     <GenericContract
+      //       contractName="AsksCoreEth"
+      //       contract={asksCore}
+      //       mainnetAdaptor={scaffoldAppProviders.mainnetAdaptor}
+      //       blockExplorer={scaffoldAppProviders.targetNetwork.blockExplorer}
+      //     />
+      //   ),
+      // },
     ],
   };
   const { routeContent: tabContents, tabMenu } = createTabsAndRoutes(pageList, route, setRoute);

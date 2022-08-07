@@ -2,6 +2,8 @@ pragma solidity >=0.8.0 <0.9.0;
 //SPDX-License-Identifier: MIT
 
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
+import { Base64 } from "base64-sol/base64.sol";
 
 import "./ERC721VoucherEmitter.sol";
 
@@ -13,9 +15,13 @@ contract GenerativeObjectCollection is ERC721VoucherEmitter {
   uint256 public mintStartTime;
   uint256 public mintEndTime;
   uint256 public maxTokens;
-  string[][] public layersURI;
-  mapping(uint256 => uint256[]) tokenLayers;
-  mapping(bytes32 => bool) combinationExists;
+  mapping(uint256 => mapping(uint256 => string)) public layersURI;
+  uint256 public nLayers;
+  uint256 public optionsPerLayer;
+  mapping(uint256 => uint256[]) public tokenLayers;
+  mapping(bytes32 => bool) public combinationExists;
+  uint256 public imageWidth;
+  uint256 public imageHeight;
 
   event GenerativeObjectCollectionCreated(address addr_, address owner_);
   event GenerativeObjectLayersUpdated(string[][] layers);
@@ -42,8 +48,8 @@ contract GenerativeObjectCollection is ERC721VoucherEmitter {
     uint256 mintEndTime_,
     uint256 maxTokens_
   ) external onlyOwner {
-    require(mintStartTime > block.timestamp, "START_MUST_BE_FUTURE");
-    require(mintEndTime > mintStartTime, "END_MUST_BE_GT_START");
+    require(mintStartTime_ > 0, "START_MUST_BE_NONZERO");
+    require(mintEndTime_ > mintStartTime_, "END_MUST_BE_GT_START");
     mintPrice = mintPrice_;
     mintStartTime = mintStartTime_;
     mintEndTime = mintEndTime_;
@@ -51,11 +57,23 @@ contract GenerativeObjectCollection is ERC721VoucherEmitter {
     emit MintParamsUpdated(mintPrice, mintStartTime, mintEndTime, maxTokens);
   }
 
-  function postLayers(string[][] calldata layers) external onlyOwner {
+  function setDefaultRoyalty(address receiver, uint96 feeNumerator) external onlyOwner {
+    _setDefaultRoyalty(receiver, feeNumerator);
+  }
+
+  function postLayers(
+    string[][] calldata layers,
+    uint256 width,
+    uint256 height
+  ) external onlyOwner {
     require(block.timestamp < mintStartTime, "TOO_LATE");
+    imageWidth = width;
+    imageHeight = height;
+    nLayers = layers.length;
+    optionsPerLayer = layers[0].length;
     for (uint256 i = 0; i < layers.length; i++) {
-      require(layers[i].length > 0, "EMPTY_LAYERS_NOT_ALLOWED");
-      for (uint256 j = 0; j < layers[i].length; i++) {
+      require(layers[i].length == optionsPerLayer, "INVALID_LAYER");
+      for (uint256 j = 0; j < layers[i].length; j++) {
         // URI for option j for layer i
         layersURI[i][j] = layers[i][j];
       }
@@ -63,15 +81,47 @@ contract GenerativeObjectCollection is ERC721VoucherEmitter {
     emit GenerativeObjectLayersUpdated(layers);
   }
 
+  // Adapted from the ZorbNFT contract
   function tokenURI(uint256 tokenId) public view virtual override(ERC721VoucherEmitter) returns (string memory) {
-    // TODO create dynamic metadata with an embedded svg image
+    require(_exists(tokenId), "No token");
+
+    string memory idString = Strings.toString(tokenId);
+
+    return
+      _encodeMetadataJSON(
+        abi.encodePacked(
+          '{"name": "Wild Silks #',
+          idString,
+          '", "description": "Each Wild Silk represents a silk scarf design. Minting',
+          " or buying a Wild Silks token on Zora over the minimum price within the allowed period",
+          'produces a voucher token that can be used to claim a physical silk scarf.",',
+          ' "image": "',
+          imageForToken(tokenId),
+          '"}'
+        )
+      );
+  }
+
+  // Adapted from ZorbNFT's zorbForAddress
+  /// @param tokenId Token for which to get the image
+  function imageForToken(uint256 tokenId) public view returns (string memory) {
+    string memory layerImages;
+    for (uint256 i = 0; i < nLayers; i++) {
+      layerImages = string(
+        abi.encodePacked(layerImages, '<image href="', layersURI[i][tokenLayers[tokenId][i]], '" width=', imageWidth, " height=", imageHeight, " />")
+      );
+    }
+    string memory encoded = Base64.encode(
+      abi.encodePacked('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ', imageWidth, " ", imageHeight, '">', layerImages, '</svg>"')
+    );
+    return string(abi.encodePacked("data:image/svg+xml;base64,", encoded));
   }
 
   function mint(address to) external payable returns (uint256) {
     require(mintStartTime > 0, "NOT_INITIALIZED");
     require(block.timestamp >= mintStartTime, "TOO_EARLY");
     require(block.timestamp < mintEndTime, "TOO_LATE");
-    require(msg.value >= mintPrice, "MOAR_MONEY");
+    require(msg.value >= mintPrice || msg.sender == Ownable.owner(), "MOAR_MONEY");
     require(nextTokenId < maxTokens, "MINT_COMPLETE");
 
     uint256 tokenId = nextTokenId;
@@ -79,14 +129,18 @@ contract GenerativeObjectCollection is ERC721VoucherEmitter {
 
     uint256 offset = uint256(uint160(address(this))) * nextTokenId;
     uint256[] storage nextTokenLayers = tokenLayers[tokenId];
+    uint256 attempts;
+    bytes32 layersHash;
     do {
-      for (uint256 i = 0; i < layersURI.length; i++) {
+      for (uint256 i = 0; i < nLayers; i++) {
         offset += 1;
-        uint256 index = _randomNumber(offset) % layersURI[i].length;
-        nextTokenLayers[i] = index;
+        uint256 index = _pseudoRandomNumber(offset) % optionsPerLayer;
+        nextTokenLayers.push(index);
       }
-    } while (combinationExists[keccak256(abi.encodePacked(nextTokenLayers))]);
-    combinationExists[keccak256(abi.encodePacked(nextTokenLayers))] = true;
+      layersHash = keccak256(abi.encodePacked(nextTokenLayers));
+    } while (combinationExists[layersHash] && attempts < 3);
+    require(!combinationExists[layersHash], "WONT_CREATE_DUPLICATE");
+    combinationExists[layersHash] = true;
     _mint(to, tokenId);
     return tokenId;
   }
@@ -101,7 +155,14 @@ contract GenerativeObjectCollection is ERC721VoucherEmitter {
   // Copied from https://fravoll.github.io/solidity-patterns/randomness.html
   // Then added the offset - this is still predictable but now we can have
   // an arbitrary number of random numbers per block
-  function _randomNumber(uint256 offset) internal view returns (uint256) {
+  function _pseudoRandomNumber(uint256 offset) internal view returns (uint256) {
     return uint256(keccak256(bytes.concat(blockhash(block.number - 1), bytes32(offset))));
+  }
+
+  // Metadata logic adapted from https://github.com/ourzora/nft-editions/blob/main/contracts/SharedNFTLogic.sol
+  /// Encodes the argument json bytes into base64-data uri format
+  /// @param json Raw json to base64 and turn into a data-uri
+  function _encodeMetadataJSON(bytes memory json) internal pure returns (string memory) {
+    return string(abi.encodePacked("data:application/json;base64,", Base64.encode(json)));
   }
 }

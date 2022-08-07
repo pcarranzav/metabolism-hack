@@ -38,6 +38,7 @@
     "@scaffold-eth/common": "0.0.0",
     "@uniswap/sdk": "^3.0.3",
     "@uniswap/token-lists": "^1.0.0-beta.30",
+    "@zoralabs/nft-components": "^1.1.2",
     "antd": "^4.22.3",
     "buffer": "^6.0.3",
     "daisyui": "^2.20.0",
